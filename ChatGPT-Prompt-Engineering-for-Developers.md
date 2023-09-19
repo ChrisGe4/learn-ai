@@ -167,4 +167,42 @@ Give the table the title 'Product Dimensions'.
 Format everything as HTML that can be used in a website. 
 Place the description in a <div> element.
 ```
-  
+# Summarizing
+
+- Summarize with a word/sentence/character limit
+```
+Your task is to generate a short summary of a product \
+review from an ecommerce site. 
+
+Summarize the review below, delimited by triple 
+quotes, in at most 30 words. 
+
+Review: """{prod_review}"""
+```
+-  Summarize with a focus
+```
+Your task is to generate a short summary of a product \
+review from an ecommerce site. 
+
+Summarize the review below, delimited by triple 
+quotes, in at most 30 words, and focusing on any aspects \
+* that mention shipping and delivery of the product.
+* that are relevant to the price and perceived value. 
+Review: """{prod_review}"""
+```
+- Summaries include topics that are not related to the topic of focus. Try "extract" instead of "summarize"
+Try "extract" instead of "summarize"
+```
+Your task is to extract relevant information from \ 
+a product review from an ecommerce site to give \
+feedback to the Shipping department. 
+
+From the review below, delimited by triple quotes \
+extract the information relevant to shipping and \ 
+delivery. Limit to 30 words. 
+
+Review: """{prod_review}"""
+```
+- Able to summarize multiple product reviews
+
+
