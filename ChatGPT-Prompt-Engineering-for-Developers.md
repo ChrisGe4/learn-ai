@@ -128,6 +128,43 @@ Actual solution:
 In the course, we are using a backslash \ to make the text fit on the screen without inserting newline '\n' characters.
 GPT-3 isn't really affected whether you insert newline characters or not. But when working with LLMs in general, you may consider whether newline characters in your prompt may affect the model's performance.
 
+# Iterative
 
+```
+Your task is to help a marketing team create a descritpion for a retail website of a product based on a technical fact sheet.
 
-I
+Write a product description based on the information provided in the technical specification delimited by triple quotes.
+
+<Do iteration here>
+ 
+
+Technical specifications: """{fact_sheet_chair}"""
+```
+- Issue 1: the text is too long -> Limit the number of words/sentences/characters.
+```
+Use at most 50 words/use 3 sentances/ 200 characters
+```
+- Issue 2: Text focuses on the wrong details -> Ask it to focus on the aspects that are relevant to the intended audience.
+```
+The description is intended for furniture retailers, 
+so should be technical in nature and focus on the 
+materials the product is constructed from.
+
+optional:
+At the end of the description, include every 7-character 
+Product ID in the technical specification.
+```
+- Issue 3. Description needs a table of dimensions -> Ask it to extract information and organize it in a table.
+
+```
+After the description, include a table that gives the 
+product's dimensions. The table should have two columns.
+In the first column include the name of the dimension. 
+In the second column include the measurements in inches only.
+
+Give the table the title 'Product Dimensions'.
+
+Format everything as HTML that can be used in a website. 
+Place the description in a <div> element.
+```
+  
