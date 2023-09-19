@@ -1,1 +1,1 @@
-# learn-ai
+Notes for the AI related courses.
