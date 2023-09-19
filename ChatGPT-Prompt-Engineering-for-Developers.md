@@ -205,4 +205,15 @@ Review: """{prod_review}"""
 ```
 - Able to summarize multiple product reviews
 
+# Inferring
+- Sentiment (positive/negative)
+```
+What is the sentiment of the following product review, 
+which is delimited with triple single quotes?
 
+[optional]
+Give your answer as a single word, either "positive" \
+or "negative".
+
+Review text: '''{lamp_review}'''
+```
