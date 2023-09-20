@@ -217,3 +217,80 @@ or "negative".
 
 Review text: '''{lamp_review}'''
 ```
+> Identify types of emotions
+```
+Identify a list of emotions that the writer of the \
+following review is expressing. Include no more than \
+five items in the list. Format your answer as a list of \
+lower-case words separated by commas.
+
+Review text: '''{lamp_review}'''
+```
+    
+> Identify anger
+
+```
+Is the writer of the following review expressing anger?\
+The review is delimited with triple backticks. \
+Give your answer as either yes or no.
+
+Review text: '''{lamp_review}'''
+"""
+```
+- **Extract Information**:
+  > product and company name from customer reviews
+```
+  Identify the following items from the review text: 
+  - Item purchased by reviewer
+  - Company that made the item
+  
+  The review is delimited with triple backticks. \
+  Format your response as a JSON object with \
+  "Item" and "Brand" as the keys. 
+  If the information isn't present, use "unknown" \
+  as the value.
+  Make your response as short as possible.
+    
+  Review text: '''{lamp_review}'''
+```
+  > Doing multiple tasks at once
+  ```
+  Identify the following items from the review text: 
+  - Sentiment (positive or negative)
+  - Is the reviewer expressing anger? (true or false)
+  - Item purchased by reviewer
+  - Company that made the item
+  
+  The review is delimited with triple backticks. \
+  Format your response as a JSON object with \
+  "Sentiment", "Anger", "Item" and "Brand" as the keys.
+  If the information isn't present, use "unknown" \
+  as the value.
+  Make your response as short as possible.
+  Format the Anger value as a boolean.
+  
+  Review text: '''{lamp_review}'''
+  ```
+- Inferring topics
+```
+Determine five topics that are being discussed in the \
+following text, which is delimited by triple backticks.
+
+Make each item one or two words long. 
+
+Format your response as a list of items separated by commas.
+
+Text sample: '''{story}'''
+```
+- Make a news alert for certain topics
+```
+Determine whether each item in the following list of \
+topics is a topic in the text below, which
+is delimited with triple backticks.
+
+Give your answer as list with 0 or 1 for each topic.\
+
+List of topics: {", ".join(topic_list)}
+
+Text sample: '''{story}'''
+```
