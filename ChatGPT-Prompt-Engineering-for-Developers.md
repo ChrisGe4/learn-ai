@@ -383,4 +383,24 @@ Ensure it follows APA style guide and targets an advanced reader.
 Output in markdown format.
 Text: '''{text}'''
 ```
-
+# Expanding
+## Customize the automated reply to a customer email
+```
+You are a customer service AI assistant.
+Your task is to send an email reply to a valued customer.
+Given the customer email delimited by ''', \
+Generate a reply to thank the customer for their review.
+If the sentiment is positive or neutral, thank them for \
+their review.
+If the sentiment is negative, apologize and suggest that \
+they can reach out to customer service. 
+Make sure to use specific details from the review.
+Write in a concise and professional tone.
+Sign the email as `AI customer agent`.
+Customer review: '''{review}'''
+Review sentiment: {sentiment} # not necessary, we can let ai to extract it
+```
+***Temperature***
+0-1
+0: more reliable and predictable
+1: more creative and wider variaty of output(random)
