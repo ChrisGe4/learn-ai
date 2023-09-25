@@ -367,3 +367,20 @@ Translate the following python dictionary from JSON to an HTML \
 table with column headers and title: {data_json}
 """
 ```
+## Spellcheck/Grammar check
+proofread and correct
+```
+Proofread and correct the following text \
+and rewrite the corrected version. If you don't find \
+and errors, just say "No errors found". Don't use \
+any punctuation around the text:
+    '''{t}'''
+```
+
+```
+proofread and correct this review. Make it more compelling. 
+Ensure it follows APA style guide and targets an advanced reader. 
+Output in markdown format.
+Text: '''{text}'''
+```
+
