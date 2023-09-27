@@ -28,4 +28,26 @@ LLM doesn't actually repeatedly predict the next word, it instead repeatedly pre
 What an LLM actually does is it will take a sequence of characters, like "Learning new things is fun!", and group the characters together to form tokens that 
 comprise **commonly occurring sequences of characters**.  Token can be one word, or one word in a space, or an exclamation mark. Less frequently used words will be broken down to tokens, such as "prompting"-> "'prom", "pt", and "ing" because those three are commonly occurring sequences of letters. **A trick is to add dashes between letters if you want to tokenize letters** (i.e to reverse letters in a word)
 
- 
+For English, 1 token is around 4 chars, or 3/4 of a word.
+
+Token limits = input `context` + output `completion`
+
+# System, User, and Assistant Messages
+
+```
+messages =  [  
+{'role':'system',
+ 'content':'All your responses must be \
+one sentence long.'},    
+{'role':'user',
+ 'content':'write me a story about a happy carrot'},  
+]
+```
+
+`system` - sets the tone or overall behavior of assistant
+   |
+   v
+`assistant` LLM response
+   | ^
+   v | 
+`user` prompts    
