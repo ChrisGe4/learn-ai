@@ -418,7 +418,7 @@ messages =  [
 {'role':'assistant', 'content':'Why did the chicken cross the road'},   
 {'role':'user', 'content':'I don\'t know'}  ]
 ```
-prompt is run in transaction. You need to provide the earlier exchanges in the input to the model to interact continuesly.
+prompt runs in transaction. You need to provide the earlier exchanges in the input to the model to interact continuesly.
 
 # Order Bot
 
