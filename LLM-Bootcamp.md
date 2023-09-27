@@ -34,3 +34,8 @@ MLCC for more detail
 
 # Approaches Beyond Prompts
 
+A useful tool: makersuite
+
+- Synthetic data  go/data-synth-app
+- Fine turning: specific to a domain or purpose, e.g. legal, edu, retail. Existing LLM with additional training data specific to the domain. e.g. Med-Palm or go/duckie for internal Google knowledge
+- adjusting part of the model by changing the weights of the model(by attaching context to the input prompt, e.g. you are a MIT Mathematician)
