@@ -129,7 +129,7 @@ import mplcursors
 from utils import plot_2D
 plot_2D(new_values[:,0], new_values[:,1], input_text_lst_news)
 ```
-**Note**: use the original for real use case.
+**Note**: use the original dimension for real use case.
 
 # Applications of Embeddings
 
@@ -138,3 +138,71 @@ plot_2D(new_values[:,0], new_values[:,1], input_text_lst_news)
 - Classification
 
 Sample code - https://learn.deeplearning.ai/google-cloud-vertex-ai/lesson/5/applications-of-embeddings
+
+# Text Generation with Vertex AI
+
+Models:
+- text-bison@001: trained to handle a variety of natural language tasks
+- chat-bison@001: for multi-turn dialogue
+
+## For more predictability of the language model's response, you can also ask the language model to choose among a list of answers and then elaborate on its answer.
+
+from
+
+```
+I'm a high school student. \
+Recommend me a programming activity to improve my skills.
+```
+
+to
+
+```
+I'm a high school student. \
+Which of these activities do you suggest and why:
+a) learn Python
+b) learn Javascript
+c) learn Fortran
+```
+## Extract information and format it as a table
+
+```
+<a long text>
+
+Extract the characters, their jobs \
+and the actors who played them from the above message as a table
+```
+
+## Adjusting Creativity/Randomness
+
+The decoding strategy applies top_k, then top_p, then temperature (in that order).
+
+If you want to adjust top_p and top_k and see different results, remember to set **temperature to be greater than zero**, otherwise the model will always choose the token with the highest probability.
+
+
+## Top K
+
+Sample from tokens withe the top k probabilities. Works well with several words are fairly likely, not very well when the probability distribution is skewed, which means one word is very likely and other words are not very likely.
+
+- The default value for top_k is 40.
+- You can set top_k to values between 1 and 40.
+
+## Top P
+
+Sample the minimum set of tokens whose probabilities add up to probability p or greater.
+
+- The default value for top_p is 0.95.
+
+
+## Temperature
+Use the probabilities to sample a random token.  Greedy decoding vs Random sample.  (Take autocomplete as an example. )
+
+- You can control the behavior of the language model's decoding strategy by adjusting the temperature, top-k, and top-n parameters.
+- For tasks for which you want the model to consistently/reliable output the same result for the same input, (such as classification or information extraction), set temperature to zero.
+- For tasks where you desire more creativity, such as brainstorming, summarization, choose a higher temperature (up to 1).
+
+Concepts:
+- logits: (googled) the raw outputs of a model before they are transformed into probabilities. Specifically, logits are the unnormalized outputs of the last layer of a neural network.
+- softmax: (googled) is an activation function that outputs the probability for each class and these probabilities will sum up to one.
+- softmax with temperature: (googled) The temperature parameter is defined as the inverse of the scaling factor used to adjust the logits before the softmax function is applied. When the temperature is set to a low value, the probabilities of the predicted words are sharpened, which means that the most likely word is selected with a higher probability.
+
+**Note**: start with 0.2 temperature.
