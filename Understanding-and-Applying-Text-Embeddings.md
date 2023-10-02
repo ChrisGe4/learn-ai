@@ -79,3 +79,24 @@ print(cosine_similarity(vec_1,vec_2))
 - One possible way to calculate sentence embeddings from word embeddings is to take the average of the word embeddings.
   This ignores word order and context, so two sentences with different meanings, but the same set of words will end up with the same sentence embedding.
 - As to sentence, these sentence embeddings account for word order and context.
+
+
+# Understanding Text Embeddings
+
+A way of represening data as points in space where the locations are semantically meaningful.
+
+- Simple method: Embed each word separately, and take a sum of mean of all the word embeddings.
+- Modern embeddings: use a transformer neural network to compute a context-aware representation of each word, then take an average of the context-aware representations.
+- Moderner: Compute embeddings for each token (e.g., sub-words) rather thatn word. Enables algorithm to work even for novel words and misspelt words. You can throw any strings, and still get the embeddings.
+
+## Training the transformer network - **contrastive learning**
+
+Given a dataset of pairs of "similar" sentences, tune neural network to move similar sentences' embeddings together, and dissimilar sentences' embeddings apart. 
+- Find similar sentences: data set with similar sentences; Q - A pairs, to tell the algo to push the Q to the A closer to the embedding of the Q of the A.
+- dissimilar: random sentences.
+
+Note: Researchers still playing around this receipt with varients, so it gets improved every a few months.
+
+# Multi-modal embeddings
+
+Text - Pictures
