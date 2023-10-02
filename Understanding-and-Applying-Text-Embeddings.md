@@ -179,21 +179,21 @@ The decoding strategy applies top_k, then top_p, then temperature (in that order
 If you want to adjust top_p and top_k and see different results, remember to set **temperature to be greater than zero**, otherwise the model will always choose the token with the highest probability.
 
 
-## Top K
+### Top K
 
 Sample from tokens withe the top k probabilities. Works well with several words are fairly likely, not very well when the probability distribution is skewed, which means one word is very likely and other words are not very likely.
 
 - The default value for top_k is 40.
 - You can set top_k to values between 1 and 40.
 
-## Top P
+### Top P
 
 Sample the minimum set of tokens whose probabilities add up to probability p or greater.
 
 - The default value for top_p is 0.95.
 
 
-## Temperature
+### Temperature
 Use the probabilities to sample a random token.  Greedy decoding vs Random sample.  (Take autocomplete as an example. )
 
 - You can control the behavior of the language model's decoding strategy by adjusting the temperature, top-k, and top-n parameters.
@@ -206,3 +206,14 @@ Concepts:
 - softmax with temperature: (googled) The temperature parameter is defined as the inverse of the scaling factor used to adjust the logits before the softmax function is applied. When the temperature is set to a low value, the probabilities of the predicted words are sharpened, which means that the most likely word is selected with a higher probability.
 
 **Note**: start with 0.2 temperature.
+
+# Semantic Search, Building a Q&A System
+
+## Grounding LLMs
+
+out-of-box LLMs aren't connected to the real world. Response would depend on the knowledge cut-off. You can't stuff everything in the prompt b/c it will soon exceed the token limit.
+
+Grouding LLM: 
+- Access information outside of training data
+- Integrate with existing IT systems, databases and business data, to trace the lineage responses/the origin of the answers. 
+- Mitigate risk of hallucinations(model provides responses that seem plausible, but not grouded in reality and fractual accurate).
