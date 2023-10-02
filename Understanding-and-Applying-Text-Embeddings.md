@@ -131,3 +131,10 @@ plot_2D(new_values[:,0], new_values[:,1], input_text_lst_news)
 ```
 **Note**: use the original for real use case.
 
+# Applications of Embeddings
+
+- Cluster the embeddings
+- Anomaly/Outlier detection
+- Classification
+
+Sample code - https://learn.deeplearning.ai/google-cloud-vertex-ai/lesson/5/applications-of-embeddings
