@@ -4,8 +4,8 @@ Mentioned Concepts:
 - Supervised learning (x->y) to repeateddly predict the next word.
 
 Two types of LLM
-- Base LLM: preducts next word, based on text training data.
-- Instruction turned LLMm: Tries to follow instructions (ChatGPT)
+- Base LLM: predicts next word, based on text training data.
+- Instruction tuned LLM: Tries to follow instructions (ChatGPT)
 
 From a Base LLM to an Instruction Tuned LLM
 1. first train a Base LLM on a lot of data
