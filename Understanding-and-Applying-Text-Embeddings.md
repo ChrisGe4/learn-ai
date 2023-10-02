@@ -42,8 +42,8 @@ embedding = embedding_model.get_embeddings(["life"])
 // The TextEmbedding.values field stores the embeddings in a Python list.
 
 vector = embedding[0].values
-print(f"Length = {len(vector)}")
-print(vector[:10])
+print(f"Length = {len(vector)}")  # 768 dimensions
+print(vector[:10])  
 
 ```
 
@@ -97,6 +97,37 @@ Given a dataset of pairs of "similar" sentences, tune neural network to move sim
 
 Note: Researchers still playing around this receipt with varients, so it gets improved every a few months.
 
-# Multi-modal embeddings
+## Multi-modal embeddings
 
 Text - Pictures
+
+# Visualizing Embaddings
+
+Use principal component analysis (PCA - is a dimensionality reduction method that is often used to reduce the dimensionality of large data sets, by transforming a large set of variables into a smaller one that still contains most of the information in the large set.). You can learn more about PCA in [this video](https://www.coursera.org/learn/unsupervised-learning-recommenders-reinforcement-learning/lecture/73zWO/reducing-the-number-of-features-optional) from the Machine Learning Specialization.
+
+Lost data along the way but makes it easy to plot.
+
+```python
+
+from sklearn.decomposition import PCA
+
+# Perform PCA for 2D visualization
+PCA_model = PCA(n_components = 2)
+PCA_model.fit(embeddings_array)
+new_values = PCA_model.transform(embeddings_array)
+
+print("Shape: " + str(new_values.shape))
+print(new_values)
+
+```
+
+```python
+import matplotlib.pyplot as plt
+import mplcursors
+%matplotlib ipympl
+
+from utils import plot_2D
+plot_2D(new_values[:,0], new_values[:,1], input_text_lst_news)
+```
+**Note**: use the original for real use case.
+
