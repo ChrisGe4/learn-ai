@@ -28,11 +28,13 @@ Step N - …
 
 If the text does not contain a sequence of instructions, \ 
 then simply write \"No steps provided.\"
+```
 
-Tactic 4: "Few-shot" prompting
+## Tactic 4: "Few-shot" prompting
 Give successful examples of completing tasks
 Your task is to answer in a consistent style.
 
+```
 You: xxx?
 Me: xxx
 You: xxx?
