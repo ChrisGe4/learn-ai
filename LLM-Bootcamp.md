@@ -23,6 +23,7 @@ MLCC for more detail
   - training data
   - math
   - bias(popular answer)
+  - assume the question is factual
 
 # Prompt Enginnering
 
