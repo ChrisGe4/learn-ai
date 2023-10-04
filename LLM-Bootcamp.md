@@ -10,9 +10,10 @@ LLM have been described as a blurry snapshot of the web.
   - Attention is the ability to consider not only the source language but the context of the target language.
   - comparing to RNN, it processes a sentence all at once.
 
-Q&A
-parameter? - consider the parameters of a function, i.e. ax+b
-word count?-> training data.
+Q&A:
+
+- parameter? - consider the parameters of a function, i.e. ax+b
+- word count?-> training data.
 
 MLCC for more detail
 
