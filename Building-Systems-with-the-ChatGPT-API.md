@@ -45,9 +45,15 @@ one sentence long.'},
 ```
 
 `system` - sets the tone or overall behavior of assistant
-   |
-   v
-`assistant` LLM response
-   | ^
-   v | 
+ 
+   ↓
+
+`assistant` LLM response - (you can also put the things previous said here)
+
+   ⇅
+   
 `user` prompts    
+
+Above is how chat format works. System message set the overall behavior.  
+
+
