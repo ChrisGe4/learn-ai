@@ -54,6 +54,12 @@ one sentence long.'},
    
 `user` prompts    
 
-Above is how chat format works. System message set the overall behavior.  
+Above is how chat format works. System message set the overall behavior. Can add more contrains to it, like "one sentence long"
 
+**Note**: token number embedded into the response.
+
+- supervised learning: get labeled data(1 month) -> train model on data(3 monthes)-> deploy&call model(3 monthes)
+- prompt-based AI: specify prompt(minutes/hours)->call model(m/h)
+
+**Caveat**: currently not working well on many unstructured data applications, includeing specifially text applications and vision applications. This recipe doesn't work for structured data applications, meaning ML applications on tabular data with lots of numerical values in Excel spreadsheets.
 
