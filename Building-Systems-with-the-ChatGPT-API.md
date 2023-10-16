@@ -283,6 +283,11 @@ and more methodically about the problem.
 
 Example:
 
+Within this one prompt we've actually maintained a number of different 
+complex states that the system could be in.
+
+In general, finding the optimal trade-off in prompt complexity requires some experimentation
+
 ```python
 delimiter = "####"
 system_message = f"""
@@ -382,3 +387,4 @@ Using the delimiters will mean that it will be easier for us later to get just t
 
 The idea of inner monologue is to instruct the model to put parts of the output that are meant to be hidden from the 
 user into a structured format that makes passing them easy. 
+
