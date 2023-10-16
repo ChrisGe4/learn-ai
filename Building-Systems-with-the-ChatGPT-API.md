@@ -514,3 +514,27 @@ The models are actually good at deciding when to use a variety of different tool
 
 One of the most effective ways to retrieve information is using text embeddings, which can be used to implement efficient knowledge retrieval over a large corpus to find information related to a given query. 
 One of the key advantages of using text embeddings is that they enable fuzzy or semantic search, which allows you to find relevant information without using the exact keywords. 
+
+# L6 Check outputs
+
+## Check output for potentially harmful content
+
+- Use moderate API to filter and moderate outputs then take appropriate action such as responding with a fallback answer or generating a new response. Good practice.
+- Ask the model itself if the generated was satisfactory and if it follows a certain rubric that you define. 
+  It's useful for immediate feedback to ensure the quality of responses in a very small number of cases.
+
+  rarely seen in PROD.  It would also increase the latency and cost of your system, because you'd have to wait for an 
+  additional call for the model, and that's also additional tokens. 
+
+Check if output is factually based on the provided product information, i.e.
+
+```
+Customer message: ```{customer_message}```
+Product information: ```{product_information}```
+Agent response: ```{final_response_to_customer}```
+
+Does the response use the retrieved information correctly?
+Does the response sufficiently answer the question
+
+Output Y or N
+```
