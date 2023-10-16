@@ -388,3 +388,129 @@ Using the delimiters will mean that it will be easier for us later to get just t
 The idea of inner monologue is to instruct the model to put parts of the output that are meant to be hidden from the 
 user into a structured format that makes passing them easy. 
 
+# L5 Process Inputs: Chaining Prompts
+
+## Implement a complex task with multiple prompts
+
+- More focused - breaks down a complex task
+- Maintain state of workflow - Each subtask contains only the instructions 
+required for a single state of the task which makes the system 
+easier to manage, makes sure the model 
+has all the information it needs to carry out a task and 
+reduces the likelihood of errors
+- Context limitations - max tokens for input prompt and output response
+- lower costs - longer prompts with more tokens cost more to run - pay per token
+- easier to test - include human in the loop
+- use external tools (api call, web search, database)
+
+In summary: for complex tasks, keep track of state external to the LLM (in your code)
+
+
+example:
+
+```python
+
+delimiter = "####"
+system_message = f"""
+You will be provided with customer service queries. \
+The customer service query will be delimited with \
+{delimiter} characters.
+Output a python list of objects, where each object has \
+the following format:
+    'category': <one of Computers and Laptops, \
+    Smartphones and Accessories, \
+    Televisions and Home Theater Systems, \
+    Gaming Consoles and Accessories, 
+    Audio Equipment, Cameras and Camcorders>,
+OR
+    'products': <a list of products that must \
+    be found in the allowed products below>
+
+Where the categories and products must be found in \
+the customer service query.
+If a product is mentioned, it must be associated with \
+the correct category in the allowed products list below.
+If no products or categories are found, output an \
+empty list.
+
+Allowed products:
+
+...
+
+Cameras and Camcorders category:
+FotoSnap DSLR Camera
+ActionCam 4K
+FotoSnap Mirrorless Camera
+ZoomMaster Camcorder
+FotoSnap Instant Camera
+
+Only output the list of objects, with nothing else.
+
+```
+
+user prompt:  
+
+ ```
+ tell me about the smartx pro phone and \
+ the fotosnap camera, the dslr one. \
+ Also tell me about your tvs 
+```
+
+1. Extract relevant product and category names
+3. Read Python string into Python list of dictionaries
+
+```python
+# Read Python string into Python list of dictionaries import json 
+​
+def read_string_to_list(input_string):
+    if inpCameras and Camcorders category:
+FotoSnap DSLR Camera
+ActionCam 4K
+FotoSnap Mirrorless Camera
+ZoomMaster Camcorder
+FotoSnap Instant Camera
+​
+Only output the list of objects, with nothing else.ut_string is None:
+        return None
+​
+    try:
+        input_string = input_string.replace("'", "\"")  # Replace single quotes with double quotes for valid JSON
+        data = json.loads(input_string)
+        return data
+    except json.JSONDecodeError:
+        print("Error: Invalid JSON string")
+        return None   
+```
+   
+5. Retrieve detailed product information for extracted products and categories
+6. Generate answer to user query based on detailed product information
+
+```python
+system_message = f"""
+You are a customer service assistant for a \
+large electronic store. \
+Respond in a friendly and helpful tone, \
+with very concise answers. \
+Make sure to ask the user relevant follow up questions.
+"""
+user_message_1 = f"""
+tell me about the smartx pro phone and \
+the fotosnap camera, the dslr one. \
+Also tell me about your tvs"""
+messages =  [  
+{'role':'system',
+ 'content': system_message},   
+{'role':'user',
+ 'content': user_message_1},  
+{'role':'assistant',
+ 'content': f"""Relevant product information:\n\
+ {product_information_for_user_message_1}"""},   
+]
+final_response = get_completion_from_messages(messages)
+print(final_response)
+```
+
+The models are actually good at deciding when to use a variety of different tools and can use them properly with instructions. And this is the idea behind ChatGPT plugins. 
+
+One of the most effective ways to retrieve information is using text embeddings, which can be used to implement efficient knowledge retrieval over a large corpus to find information related to a given query. 
+One of the key advantages of using text embeddings is that they enable fuzzy or semantic search, which allows you to find relevant information without using the exact keywords. 
