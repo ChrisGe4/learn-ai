@@ -538,3 +538,20 @@ Does the response sufficiently answer the question
 
 Output Y or N
 ```
+
+# L8/9 Evaluation
+
+* Tune prompts on handful of examples
+* Add additional "tricky" examples opportunistically - a handful of tricky examples helps a lot.
+* Develop metrics to measure performance on examples - i.e. average accuracy 
+* Collect randomly sampled set of examples to tune to (development set/hold-out cross validation set) - to improve the performance
+* Collect and use a hold-out test set - larget set for unbiased fair estimate of how was the system doing
+
+Stops at 2nd bullet, usually works fine.  
+
+### More Evaluation
+
+- Evaluate the LLM's answer to the user with a rubric, based on the extracted product information. - use another function call/llm to eval previous one
+- Evaluate the LLM's answer to the user based on an "ideal" / "expert" (human generated) answer.
+  - OpenAI evals project. https://github.com/openai/evals/blob/main/evals/registry/modelgraded/fact.yaml
+  - BLEU score: another way to evaluate whether two pieces of text are similar or not.
