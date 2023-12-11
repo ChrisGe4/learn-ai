@@ -53,7 +53,25 @@ the model, it's not that expensive.
 ## Benefits of finetuning your own LLM
 
 - Performance
+  - stops the LLM from making stuff up, especially around your domain.
+  - It can be far more consistent.
+  - better at moderating. Reduce unwanted info, esp. about your company
 
+- Privacy
+  - in your VPC or on premise
+  - prevents data leakage and data breaches that might happen on off the shelf, third party solutions.
+    This is one way to keep that data safe that you've been collecting for a while.
+
+- Cost
+  - cost transparency.
+  - lower the cost per request. fine tuning a smaller LLM can actually help you do that. 
+  - greater control over costs and a couple other factors as well. 
+
+- Reliability
+  - control uptime
+  - lower latency. You can greatly reduce the latency for certain applications like autocomplete.
+  - moderation. Basically, if you want the model to say, I'm sorry to certain things, or to say, I don't know
+    to certain things, or even to have a custom response, This is one way to actually provide those guardrails to the model. 
 
 
 
