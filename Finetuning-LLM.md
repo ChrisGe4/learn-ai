@@ -81,9 +81,19 @@ the model, it's not that expensive.
 
 First step before fine-tuning even happens.
 
-- Model at the start
+Model at the start
   - zero knowledge about the world: weights are completely random
   - can't form english words: no language skill
 - Next token prediction is the objective
 - Giant corpus of text data that often scraped from the internet: "unlabeled". A lot of manual work to 
   getting this data set to be effective for model pre-training even after many cleaning processes.
+- often called self-supervised learning because the model is essentially supervising itself with next token prediction.
+
+After training
+- Learns language
+- Learns knowledge
+
+It is just trying to predict the next token and it's reading the entire Internet's worth of data to do so. 
+
+
+
