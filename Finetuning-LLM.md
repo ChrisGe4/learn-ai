@@ -73,6 +73,17 @@ the model, it's not that expensive.
   - moderation. Basically, if you want the model to say, I'm sorry to certain things, or to say, I don't know
     to certain things, or even to have a custom response, This is one way to actually provide those guardrails to the model. 
 
+# Where finetuning fits in
 
+## Finetuning data: compare to pretraining and basic preparation
 
+### Pretraining
 
+First step before fine-tuning even happens.
+
+- Model at the start
+  - zero knowledge about the world: weights are completely random
+  - can't form english words: no language skill
+- Next token prediction is the objective
+- Giant corpus of text data that often scraped from the internet: "unlabeled". A lot of manual work to 
+  getting this data set to be effective for model pre-training even after many cleaning processes.
