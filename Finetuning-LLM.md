@@ -95,5 +95,8 @@ After training
 
 It is just trying to predict the next token and it's reading the entire Internet's worth of data to do so. 
 
+## What is "data" scraped from the internet
 
+- However the data set of the closed source models from large companies are not very public.
+- Open source effort by EleutherAI to create a dataset called The Pile.
 
