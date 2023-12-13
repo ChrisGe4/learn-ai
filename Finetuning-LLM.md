@@ -99,4 +99,130 @@ It is just trying to predict the next token and it's reading the entire Internet
 
 - However the data set of the closed source models from large companies are not very public.
 - Open source effort by EleutherAI to create a dataset called The Pile.
+- pre-training step is pretty expensive and time-consuming because it's so time-consuming to have the model go through all of this data,
+  go from absolutely randomness to understanding some of these texts
 
+## Finetuning after pretraining
+
+pre-training is really that first step that gets you that base model. It's not useful at this moment.
+
+you can use fine-tuning to get a fine-tuned model. And actually, even a fine-tuned model, you can continue adding fine-tuning steps afterwards. 
+So fine-tuning really is a step afterwards. 
+
+### Finetuning usually refers to training further
+
+- Can also be self-supervised unlabeled data
+- Can be "labeled" data you curated to make it much more structured for the model 
+to learn about
+- same training obj: next token prediction
+
+**one thing that's key that differentiates fine-tuning from pre-training is that there's much less data needed.**
+
+Note: Definition of fine-tuning here is updating the weights of the entire model, not just part of it(vs. fine-tuning on ImageNet).
+
+In summary, all we're doing is changing up the data so that it's more structured in a way, and the model can be more consistent in 
+outputting and mimicking that structure.
+
+
+## What is finetuning doing for you?
+
+behavior change - both - gain knowledge 
+
+- one giant category is just behavior change. You're changing the behavior of the model.
+  - learn to respond much more consistently
+  - learn to focus, e.g. moderation
+  - teasing out capability, e.g. better at conversation. before we would have to do a lot of prompt engineering in 
+    order to tease that information out.
+- gain knowledge
+  - Increase knowledge of new specific topics that are not in that base pre-trained model
+  - Correct old incorrect information 
+
+## Tasks to finetune
+
+- just text in, text out for LLMs
+   - extracting text: put text in and you get less text out.
+      - reading:  extracting keywords, topics
+      - route the chat, for example, to some API or otherwise
+      - agent capabilities: planning, reasoning, self-critic, tool use, etc.
+   - expansion: you put text in, and you get more text out
+      - writing: chatting, writing emails/code
+ - task clarity is key indicator of success: clarity really means knowing what good output looks like, what bad output looks like, but also what better output looks like.
+
+
+## Practice: first time finetuning 
+
+1. identify tasks by just prompt engineering a large LLM and that could be chat GPT.
+2. find a task you see on LLM doing ok at.
+3. pick one task.
+4. get ~1000(golden number) input and outputs for that task. make sure that these inputs and outputs are better than the okay result from that LLM before.
+5. finetune a small LLM on this data.
+
+
+## Sample code
+
+Various ways of formatting your data
+
+```py
+filename = "lamini_docs.jsonl"
+instruction_dataset_df = pd.read_json(filename, lines=True)
+instruction_dataset_df
+
+examples = instruction_dataset_df.to_dict()
+text = examples["question"][0] + examples["answer"][0]
+text
+
+if "question" in examples and "answer" in examples:
+  text = examples["question"][0] + examples["answer"][0]
+elif "instruction" in examples and "response" in examples:
+  text = examples["instruction"][0] + examples["response"][0]
+elif "input" in examples and "output" in examples:
+  text = examples["input"][0] + examples["output"][0]
+else:
+  text = examples["text"][0]
+
+prompt_template_qa = """### Question:
+{question}
+
+### Answer:
+{answer}"""
+
+question = examples["question"][0]
+answer = examples["answer"][0]
+
+text_with_prompt_template = prompt_template_qa.format(question=question, answer=answer)
+text_with_prompt_template
+
+prompt_template_q = """### Question:
+{question}
+
+### Answer:"""
+
+
+num_examples = len(examples["question"])
+finetuning_dataset_text_only = []
+finetuning_dataset_question_answer = []
+for i in range(num_examples):
+  question = examples["question"][i]
+  answer = examples["answer"][i]
+
+  text_with_prompt_template_qa = prompt_template_qa.format(question=question, answer=answer)
+  finetuning_dataset_text_only.append({"text": text_with_prompt_template_qa})
+
+  text_with_prompt_template_q = prompt_template_q.format(question=question)
+  finetuning_dataset_question_answer.append({"question": text_with_prompt_template_q, "answer": answer})
+
+
+pprint(finetuning_dataset_text_only[0])
+pprint(finetuning_dataset_question_answer[0])
+```
+ 
+Common ways of storing your data
+
+```py
+with jsonlines.open(f'lamini_docs_processed.jsonl', 'w') as writer:
+    writer.write_all(finetuning_dataset_question_answer)
+
+finetuning_dataset_name = "lamini/lamini_docs"
+finetuning_dataset = load_dataset(finetuning_dataset_name)
+print(finetuning_dataset)
+```
