@@ -264,7 +264,7 @@ For different types of fine-tuning, data prep is really where you have differenc
 ## Code Samples
 
 ### Setup
-```
+```py
 import os
 import lamini
 
@@ -283,7 +283,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 ```
 ### Load instruction tuned dataset
 
-```
+```py
 instruction_tuned_dataset = load_dataset("tatsu-lab/alpaca", split="train", streaming=True)
 
 m = 5
@@ -294,7 +294,7 @@ for j in top_m:
 ```
 ### Two prompt templates
 
-```
+```py
 prompt_template_with_input = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
 ### Instruction:
@@ -315,7 +315,7 @@ prompt_template_without_input = """Below is an instruction that describes a task
 
 ### Hydrate prompts (add data to prompts)
 
-```
+```py
 processed_data = []
 for j in top_m:
   if not j["input"]:
@@ -329,12 +329,14 @@ pprint(processed_data[0])
 ```
 ### Save data to jsonl
 
+```py
 with jsonlines.open(f'alpaca_processed.jsonl', 'w') as writer:
     writer.write_all(processed_data)
+```
 
 ### Compare non-instruction-tuned vs. instruction-tuned models
 
-```
+```py
 dataset_path_hf = "lamini/alpaca"
 dataset_hf = load_dataset(dataset_path_hf)
 print(dataset_hf)
@@ -355,7 +357,7 @@ print("Instruction-tuned output (ChatGPT): ", instruct_output_chatgpt)
 
 ### Try smaller models
 
-```
+```py
 tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-70m")
 model = AutoModelForCausalLM.from_pretrained("EleutherAI/pythia-70m")
 
@@ -398,7 +400,7 @@ print(inference(test_sample["question"], model, tokenizer))
 
 ### Compare to finetuned small model
 
-```
+```py
 instruction_model = AutoModelForCausalLM.from_pretrained("lamini/lamini_docs_finetuned")
 
 print(inference(test_sample["question"], instruction_model, tokenizer))
