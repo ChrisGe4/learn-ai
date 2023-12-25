@@ -226,3 +226,181 @@ finetuning_dataset_name = "lamini/lamini_docs"
 finetuning_dataset = load_dataset(finetuning_dataset_name)
 print(finetuning_dataset)
 ```
+
+# Instruction fine-tuning
+
+Instruction fine-tuning( AKA instruction tune or instruction 
+following LLMs) is a type of fine-tuning. Type includes: reasoning, routing, copilot, which is writing code, chat, different agents.
+
+It teaches the model to follow instructions and behave more like a chatbot. Like GPT-3 to chatgpt.
+
+## LLM Data Generation
+
+Some existing data is ready as-is, online:
+- FAQs
+- Customer support conversations
+- Slack messages
+
+It's really this dialogue dataset or just instruction response datasets
+
+if you don't have data, no problem:
+- You can also convert your data into something that's more of a question-answer format or instruction following format by using a prompt template. i.e. README might be able to come be converted into a question-answer pair.
+- You can also use another LLM to do this for you -a technique called Alpaca from Stanford that uses chat GPT to do this.
+- You can use a pipeline of different open source models to do this as well.
+
+## Instruction fineturning generalization
+
+- It teaches this new behavior to the model. i.e. the answer of capital of france from base model vs finetuned model
+- Can access model's pre-existing knowledge(learned in pre-existing pre-training step), generalize instructions to other data, not in finetuning dataset. i.e. code. this is actually findings from the chat GPT paper where the 
+model can now answer questions about code even though they didn't have question answer pairs about that for their instruction fine-tuning. because it's really expensive to get programmers label data sets.
+
+## Overview of Finetuning
+
+It's a very iterative process to improve the model: **data prep - training - evaluation**. After you evaluate the model, you need to prep the data again to improve it. 
+
+For different types of fine-tuning, data prep is really where you have differences.  training and evaluation is very similar.
+
+
+## Code Samples
+
+### Setup
+```
+import os
+import lamini
+
+lamini.api_url = os.getenv("POWERML__PRODUCTION__URL")
+lamini.api_key = os.getenv("POWERML__PRODUCTION__KEY")
+
+import itertools
+import jsonlines
+
+from datasets import load_dataset
+from pprint import pprint
+
+from llama import BasicModelRunner
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+```
+### Load instruction tuned dataset
+
+```
+instruction_tuned_dataset = load_dataset("tatsu-lab/alpaca", split="train", streaming=True)
+
+m = 5
+print("Instruction-tuned dataset:")
+top_m = list(itertools.islice(instruction_tuned_dataset, m))
+for j in top_m:
+  print(j)
+```
+### Two prompt templates
+
+```
+prompt_template_with_input = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Input:
+{input}
+
+### Response:"""
+
+prompt_template_without_input = """Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Response:"""
+```
+
+### Hydrate prompts (add data to prompts)
+
+```
+processed_data = []
+for j in top_m:
+  if not j["input"]:
+    processed_prompt = prompt_template_without_input.format(instruction=j["instruction"])
+  else:
+    processed_prompt = prompt_template_with_input.format(instruction=j["instruction"], input=j["input"])
+
+  processed_data.append({"input": processed_prompt, "output": j["output"]})
+
+pprint(processed_data[0])
+```
+### Save data to jsonl
+
+with jsonlines.open(f'alpaca_processed.jsonl', 'w') as writer:
+    writer.write_all(processed_data)
+
+### Compare non-instruction-tuned vs. instruction-tuned models
+
+```
+dataset_path_hf = "lamini/alpaca"
+dataset_hf = load_dataset(dataset_path_hf)
+print(dataset_hf)
+
+non_instruct_model = BasicModelRunner("meta-llama/Llama-2-7b-hf")
+non_instruct_output = non_instruct_model("Tell me how to train my dog to sit")
+print("Not instruction-tuned output (Llama 2 Base):", non_instruct_output)
+
+instruct_model = BasicModelRunner("meta-llama/Llama-2-7b-chat-hf")
+instruct_output = instruct_model("Tell me how to train my dog to sit")
+print("Instruction-tuned output (Llama 2): ", instruct_output)
+
+chatgpt = BasicModelRunner("chat-gpt")
+instruct_output_chatgpt = chatgpt("Tell me how to train my dog to sit")
+print("Instruction-tuned output (ChatGPT): ", instruct_output_chatgpt)
+
+```
+
+### Try smaller models
+
+```
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-70m")
+model = AutoModelForCausalLM.from_pretrained("EleutherAI/pythia-70m")
+
+def inference(text, model, tokenizer, max_input_tokens=1000, max_output_tokens=100):
+  # Tokenize
+  input_ids = tokenizer.encode(
+          text,
+          return_tensors="pt",
+          truncation=True,
+          max_length=max_input_tokens
+  )
+
+  # Generate
+  device = model.device
+  generated_tokens_with_prompt = model.generate(
+    input_ids=input_ids.to(device),
+    max_length=max_output_tokens
+  )
+
+  # Decode
+  generated_text_with_prompt = tokenizer.batch_decode(generated_tokens_with_prompt, skip_special_tokens=True)
+
+  # Strip the prompt
+  generated_text_answer = generated_text_with_prompt[0][len(text):]
+
+  return generated_text_answer
+
+#---------------------
+finetuning_dataset_path = "lamini/lamini_docs"
+finetuning_dataset = load_dataset(finetuning_dataset_path)
+print(finetuning_dataset)
+
+
+test_sample = finetuning_dataset["test"][0]
+print(test_sample)
+
+print(inference(test_sample["question"], model, tokenizer))
+
+```
+
+### Compare to finetuned small model
+
+```
+instruction_model = AutoModelForCausalLM.from_pretrained("lamini/lamini_docs_finetuned")
+
+print(inference(test_sample["question"], instruction_model, tokenizer))
+
+```
