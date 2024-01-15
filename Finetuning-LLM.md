@@ -406,3 +406,22 @@ instruction_model = AutoModelForCausalLM.from_pretrained("lamini/lamini_docs_fin
 print(inference(test_sample["question"], instruction_model, tokenizer))
 
 ```
+
+# Data Preparation
+
+## Best Practices
+
+- Most important is higher quality data. Advoid garbage-in-garbage-out. 
+- Diversity. data covers a lot of aspects of your use case. If all your inputs and outputs are the same, then the model can start to memorize them,then the model will start to just only spout the same thing over and over again.
+- Real vs Generated. Easy to generate but real data is very effective and helpful, esp for writing tasks. Generated data has certain patterns and it can be detected. Train with same pattern results in not learning new patterns or new ways of framing things.
+- More data is important.  Pre-training handles this problem. It learns from the internet.
+
+## Prepare Data
+
+1. Collect instruction-response pairs
+2. Concatenate pairs(add prompt template, if applicable)
+3. Tokenize: Pad, truncate
+4. Split into train/test
+
+
+
