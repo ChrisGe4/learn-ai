@@ -420,8 +420,69 @@ print(inference(test_sample["question"], instruction_model, tokenizer))
 
 1. Collect instruction-response pairs
 2. Concatenate pairs(add prompt template, if applicable)
-3. Tokenize: Pad, truncate
+3. Tokenize: Pad, truncate -> right size going into the model. Something that's really important for models is that everything in a batch is the same length, because you're operating with fixed size tensors.
 4. Split into train/test
 
+### Tokenizing
+
+Take your text data and turn that into numbers that represent each of those pieces of text. It's not actually necessarily by word. It's based on the frequency of common character occurrences.
+ING token is very common in tokenizers. Happens in every single gerund, "ing"->278.  
+Encode and decode with the same tokenizer.
+A tokenizer is really associated with a specific model for each model as it was trained on it.
+
+![dia](doc-data/tokenizing.png)
+
+## Sample Code
+
+```py
+
+import pandas as pd
+import datasets
+
+from pprint import pprint
+from transformers import AutoTokenizer
+
+```
+
+### Tokenizing text
+
+```py
+### AutoTokenizer class from the Transformers library by HuggingFace. And what it does is amazing. It automatically finds the right tokenizer or for your model when you just specify what the model is.
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-70m")
+
+text = "Hi, how are you?"
+encoded_text = tokenizer(text)["input_ids"]
+encoded_text
+
+decoded_text = tokenizer.decode(encoded_text)
+print("Decoded tokens back into text: ", decoded_text)
+```
+
+### Tokenize multiple texts at once
+
+```py
+list_texts = ["Hi, how are you?", "I'm good", "Yes"]
+encoded_texts = tokenizer(list_texts)
+print("Encoded several texts: ", encoded_texts["input_ids"])
+```
+
+### Padding and truncation
+Something that's really important for models is that everything in a batch is the same length, because you're operating with fixed size tensors(fundamental data structure to store, represent and change data in ML).
+
+```py
+tokenizer.pad_token = tokenizer.eos_token 
+encoded_texts_longest = tokenizer(list_texts, padding=True)
+print("Using padding: ", encoded_texts_longest["input_ids"])
+
+encoded_texts_truncation = tokenizer(list_texts, max_length=3, truncation=True)
+print("Using truncation: ", encoded_texts_truncation["input_ids"])
+
+tokenizer.truncation_side = "left"
+encoded_texts_truncation_left = tokenizer(list_texts, max_length=3, truncation=True)
+print("Using left-side truncation: ", encoded_texts_truncation_left["input_ids"])
+
+encoded_texts_both = tokenizer(list_texts, max_length=3, truncation=True, padding=True)
+print("Using both padding and truncation: ", encoded_texts_both["input_ids"])
+```
 
 
