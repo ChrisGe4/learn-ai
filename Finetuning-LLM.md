@@ -420,7 +420,9 @@ print(inference(test_sample["question"], instruction_model, tokenizer))
 
 1. Collect instruction-response pairs
 2. Concatenate pairs(add prompt template, if applicable)
-3. Tokenize: Pad, truncate -> right size going into the model. Something that's really important for models is that everything in a batch is the same length, because you're operating with fixed size tensors.
+3. Tokenize: Pad, truncate -> Pad: right size going into the model. Something that's really important for models is that everything in a batch is the same length, because you're operating with fixed size tensors. Truncation is a strategy to handle making 
+those encoded text much shorter and that fit into the model
+actually into the model
 4. Split into train/test
 
 ### Tokenizing
@@ -467,7 +469,10 @@ print("Encoded several texts: ", encoded_texts["input_ids"])
 ```
 
 ### Padding and truncation
-Something that's really important for models is that everything in a batch is the same length, because you're operating with fixed size tensors(fundamental data structure to store, represent and change data in ML).
+Padding: Something that's really important for models is that everything in a batch is the same length, because you're operating with fixed size tensors(fundamental data structure to store, represent and change data in ML).
+Truncation is a strategy to handle making those encoded text much shorter and that fit into the modelactually into the model
+
+Realistically for padding and truncation, you want to use both. So let's just actually set both in there.
 
 ```py
 tokenizer.pad_token = tokenizer.eos_token 
@@ -485,4 +490,177 @@ encoded_texts_both = tokenizer(list_texts, max_length=3, truncation=True, paddin
 print("Using both padding and truncation: ", encoded_texts_both["input_ids"])
 ```
 
+### Prepare instruction dataset
+
+```py
+import pandas as pd
+
+filename = "lamini_docs.jsonl"
+instruction_dataset_df = pd.read_json(filename, lines=True)
+examples = instruction_dataset_df.to_dict()
+
+if "question" in examples and "answer" in examples:
+  text = examples["question"][0] + examples["answer"][0]
+elif "instruction" in examples and "response" in examples:
+  text = examples["instruction"][0] + examples["response"][0]
+elif "input" in examples and "output" in examples:
+  text = examples["input"][0] + examples["output"][0]
+else:
+  text = examples["text"][0]
+
+prompt_template = """### Question:
+{question}
+
+### Answer:"""
+
+num_examples = len(examples["question"])
+finetuning_dataset = []
+for i in range(num_examples):
+  question = examples["question"][i]
+  answer = examples["answer"][i]
+  text_with_prompt_template = prompt_template.format(question=question)
+  finetuning_dataset.append({"question": text_with_prompt_template, "answer": answer})
+
+from pprint import pprint
+print("One datapoint in the finetuning dataset:")
+pprint(finetuning_dataset[0])
+```
+
+### Tokenize a single example
+
+So first concatenating that question with that answer and 
+then running it through the tokenizer. I'm 
+just returning the tensors as a NumPy array 
+here just to be simple and running it 
+with just padding and that's because I don't know how long these tokens actually 
+will be,
+
+```py
+text = finetuning_dataset[0]["question"] + finetuning_dataset[0]["answer"]
+tokenized_inputs = tokenizer(
+    text,
+    return_tensors="np",
+    padding=True
+)
+print(tokenized_inputs["input_ids"])
+```
+
+I then figure out, you know, the minimum between the max length and 
+the tokenized inputs. Of course, you can always just pad to the longest. 
+You can always pad to the max length and so that's 
+what that is here. 
+
+```py
+max_length = 2048
+max_length = min(
+    tokenized_inputs["input_ids"].shape[1],
+    max_length,
+)
+```
+
+And then I'm tokenizing again with truncation up 
+to that max length. 
+
+```py
+tokenized_inputs = tokenizer(
+    text,
+    return_tensors="np",
+    truncation=True,
+    max_length=max_length
+)
+
+tokenized_inputs["input_ids"]
+```
+
+### Tokenize the instruction dataset
+
+Turn above into a function
+
+```py
+def tokenize_function(examples):
+    if "question" in examples and "answer" in examples:
+      text = examples["question"][0] + examples["answer"][0]
+    elif "input" in examples and "output" in examples:
+      text = examples["input"][0] + examples["output"][0]
+    else:
+      text = examples["text"][0]
+
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenized_inputs = tokenizer(
+        text,
+        return_tensors="np",
+        padding=True,
+    )
+
+    max_length = min(
+        tokenized_inputs["input_ids"].shape[1],
+        2048
+    )
+    tokenizer.truncation_side = "left"
+    tokenized_inputs = tokenizer(
+        text,
+        return_tensors="np",
+        truncation=True,
+        max_length=max_length
+    )
+
+    return tokenized_inputs
+```
+
+So I'm setting batch size to one, it's very simple. 
+It is gonna be batched and dropping last batch true. That's 
+often what we do to help with mixed size inputs. 
+And so the last batch might be a different size
+
+```py
+finetuning_dataset_loaded = datasets.load_dataset("json", data_files=filename, split="train")
+
+tokenized_dataset = finetuning_dataset_loaded.map(
+    tokenize_function,
+    batched=True,
+    batch_size=1,
+    drop_last_batch=True
+)
+
+print(tokenized_dataset)
+```
+I have to add in this labels columns 
+as for hugging face to handle it
+
+```py
+tokenized_dataset = tokenized_dataset.add_column("labels", tokenized_dataset["input_ids"])
+```
+
+### Prepare test/train splits
+
+Specify the test size as 10% of the data. 
+So of course you can change this depending on how 
+big your data set is. 
+Shuffle's true, so I'm randomizing the order of this 
+data set
+
+```py
+split_dataset = tokenized_dataset.train_test_split(test_size=0.1, shuffle=True, seed=123)
+print(split_dataset)
+```
+
+### Some datasets for you to try
+
+```py
+finetuning_dataset_path = "lamini/lamini_docs"
+finetuning_dataset = datasets.load_dataset(finetuning_dataset_path)
+print(finetuning_dataset)
+
+taylor_swift_dataset = "lamini/taylor_swift"
+bts_dataset = "lamini/bts"
+open_llms = "lamini/open_llms"
+
+dataset_swiftie = datasets.load_dataset(taylor_swift_dataset)
+print(dataset_swiftie["train"][1])
+
+# This is how to push your own dataset to your Huggingface hub
+# !pip install huggingface_hub
+# !huggingface-cli login
+# split_dataset.push_to_hub(dataset_path_hf)
+```
 
