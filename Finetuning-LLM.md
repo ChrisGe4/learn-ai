@@ -663,4 +663,351 @@ print(dataset_swiftie["train"][1])
 # !huggingface-cli login
 # split_dataset.push_to_hub(dataset_path_hf)
 ```
+# Training
+
+Training process is actually quite similar to other neural networks. 
+
+1. Add traing data up at the top
+2. calculate the loss - it predicts something totally off in the beginning, predict the loss compared to the actual response it was supposed to give
+3. update the weights
+4. back prop through the model to update the model to improve it
+
+Hyperparameters: learning rate, learning scheduler, and various optimizer hyperparameters, etc.
+
+## Process
+
+Keys Words:
+
+- PyTorch
+- An **epoch** is a pass over your entire data set.
+
+you might go over your entire data set multiple times. And then you want to load it up in batches. 
+So that is those different batches that you saw when you're tokenizing data. 
+So that sets of data together. And then you put the batch through your model to get outputs. You compute the loss from your model and 
+you take a backwards step and you update your optimizer. 
+
+General chunks of training process code in PyTorch
+
+```py
+for epoch in range(num_epochs):
+  for batch in train_dataloader:
+    outputs = model(**batch)
+    loss = outputs.loss
+    loss.backward()
+    optimizer.step()
+
+```
+
+## Code
+
+### Technically, it's only a few lines of code to run on GPUs (elsewhere, ie. on Lamini).
+
+```py
+from llama import BasicModelRunner
+
+model = BasicModelRunner("EleutherAI/pythia-410m") 
+model.load_data_from_jsonlines("lamini_docs.jsonl", input_key="question", output_key="answer")
+model.train(is_public=True) 
+
+
+```
+1. Choose base model.
+2. Load data.
+3. Train it. Returns a model ID, dashboard, and playground interface.
+
+### Let's look under the hood at the core code running this! This is the open core of Lamini's `llama` library :)
+
+```py
+import os
+import lamini
+
+lamini.api_url = os.getenv("POWERML__PRODUCTION__URL")
+lamini.api_key = os.getenv("POWERML__PRODUCTION__KEY")
+
+
+import datasets
+import tempfile
+import logging
+import random
+import config
+import os
+import yaml
+import time
+import torch
+import transformers
+import pandas as pd
+import jsonlines
+
+from utilities import *
+from transformers import AutoTokenizer
+from transformers import AutoModelForCausalLM
+from transformers import TrainingArguments
+from transformers import AutoModelForCausalLM
+from llama import BasicModelRunner
+
+
+logger = logging.getLogger(__name__)
+global_config = None
+```
+
+### Load the Lamini docs dataset
+
+```py
+# local
+dataset_name = "lamini_docs.jsonl"
+dataset_path = f"/content/{dataset_name}"
+use_hf = False
+
+# huggingface
+dataset_path = "lamini/lamini_docs"
+use_hf = True
+```
+
+### Set up the model, training config, and tokenizer
+
+```py
+model_name = "EleutherAI/pythia-70m" 
+
+training_config = {
+    "model": {
+        "pretrained_name": model_name,
+        "max_length" : 2048
+    },
+    "datasets": {
+        "use_hf": use_hf,
+        "path": dataset_path
+    },
+    "verbose": True
+}
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.eos_token
+train_dataset, test_dataset = tokenize_and_split_data(training_config, tokenizer)
+
+print(train_dataset)
+print(test_dataset)
+```
+
+### Load the base model - CPU/GPU
+
+```py
+base_model = AutoModelForCausalLM.from_pretrained(model_name)
+device_count = torch.cuda.device_count()
+if device_count > 0:
+    logger.debug("Select GPU device")
+    device = torch.device("cuda")
+else:
+    logger.debug("Select CPU device")
+    device = torch.device("cpu")
+base_model.to(device)
+```
+### Define function to carry out inference
+
+```py
+def inference(text, model, tokenizer, max_input_tokens=1000, max_output_tokens=100):
+  # Tokenize
+  input_ids = tokenizer.encode(
+          text,
+          return_tensors="pt",
+          truncation=True,
+          max_length=max_input_tokens
+  )
+
+  # Generate based on tokens
+  device = model.device
+  generated_tokens_with_prompt = model.generate(
+    # e.g. on GPU so the model can see it
+    input_ids=input_ids.to(device),
+    max_length=max_output_tokens
+  )
+
+  # Decode
+  generated_text_with_prompt = tokenizer.batch_decode(generated_tokens_with_prompt, skip_special_tokens=True)
+
+  # Strip the prompt
+  generated_text_answer = generated_text_with_prompt[0][len(text):]
+
+  return generated_text_answer
+```
+
+### Try the base model
+
+```py
+test_text = test_dataset[0]['question']
+print("Question input (test):", test_text)
+print(f"Correct answer from Lamini docs: {test_dataset[0]['answer']}")
+print("Model's answer: ")
+print(inference(test_text, base_model, tokenizer))
+```
+
+### Setup training
+
+```py
+# A step is a batch of training data. And so if your batch size is one, it's just one data point. If your batch size is 2,000, it's 2,000 data points. 
+max_steps = 3
+
+# best practice is add timestamp
+trained_model_name = f"lamini_docs_{max_steps}_steps"
+output_dir = trained_model_name
+
+training_args = TrainingArguments(
+
+  # Learning rate
+  learning_rate=1.0e-5,
+
+  # Number of training epochs
+  num_train_epochs=1,
+
+  # Max steps to train for (each step is a batch of data)
+  # Overrides num_train_epochs, if not -1
+  max_steps=max_steps,
+
+  # Batch size for training
+  per_device_train_batch_size=1,
+
+  # Directory to save model checkpoints
+  output_dir=output_dir,
+
+  # Other arguments (most are default)
+  overwrite_output_dir=False, # Overwrite the content of the output directory
+  disable_tqdm=False, # Disable progress bars
+  eval_steps=120, # Number of update steps between two evaluations
+  save_steps=120, # After # steps model is saved
+  warmup_steps=1, # Number of warmup steps for learning rate scheduler
+  per_device_eval_batch_size=1, # Batch size for evaluation
+  evaluation_strategy="steps",
+  logging_strategy="steps",
+  logging_steps=1,
+  optim="adafactor",
+  gradient_accumulation_steps = 4,
+  gradient_checkpointing=False,
+
+  # Parameters for early stopping
+  load_best_model_at_end=True,
+  save_total_limit=1,
+  metric_for_best_model="eval_loss",
+  greater_is_better=False
+)
+
+model_flops = (
+  base_model.floating_point_ops(
+    {
+       "input_ids": torch.zeros(
+           (1, training_config["model"]["max_length"])
+      )
+    }
+  )
+  * training_args.gradient_accumulation_steps
+)
+
+print(base_model)
+print("Memory footprint", base_model.get_memory_footprint() / 1e9, "GB")
+print("Flops", model_flops / 1e9, "GFLOPs")
+
+
+trainer = Trainer(
+    model=base_model,
+    model_flops=model_flops,
+    total_steps=max_steps,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset,
+)
+```
+
+### Train a few steps
+
+```py
+training_output = trainer.train()
+```
+
+loss will go down in the later step
+
+### Save model locally
+
+```py
+save_dir = f'{output_dir}/final'
+
+trainer.save_model(save_dir)
+print("Saved model to:", save_dir)
+
+finetuned_slightly_model = AutoModelForCausalLM.from_pretrained(save_dir, local_files_only=True)
+
+finetuned_slightly_model.to(device) 
+```
+
+### Run slightly trained model
+```py
+test_question = test_dataset[0]['question']
+print("Question input (test):", test_question)
+​
+print("Finetuned slightly model's answer: ")
+print(inference(test_question, finetuned_slightly_model, tokenizer))
+test_answer = test_dataset[0]['answer']
+print("Target answer output (test):", test_answer)
+```
+
+Note that 3 data points(out of 1000+ data points in the training data) does not make the model better
+
+### Run same model that has been trained for two epochs
+```py
+finetuned_longer_model = AutoModelForCausalLM.from_pretrained("lamini/lamini_docs_finetuned")
+tokenizer = AutoTokenizer.from_pretrained("lamini/lamini_docs_finetuned")
+​
+finetuned_longer_model.to(device)
+print("Finetuned longer model's answer: ")
+print(inference(test_question, finetuned_longer_model, tokenizer))
+```
+
+### Run much larger trained model and explore moderation
+```py
+model_name_to_id
+bigger_finetuned_model = BasicModelRunner(model_name_to_id["bigger_model_name"])
+bigger_finetuned_output = bigger_finetuned_model(test_question)
+print("Bigger (2.8B) finetuned model (test): ", bigger_finetuned_output)
+```
+
+### Moderation - encouraging the model to actually not get too off track
+
+similar to moderation api in chatgpt
+
+```py
+count = 0
+for i in range(len(train_dataset)):
+ if "keep the discussion relevant to Lamini" in train_dataset[i]["answer"]:
+  print(i, train_dataset[i]["question"], train_dataset[i]["answer"])
+  count += 1
+print(count)
+```
+
+### Explore moderation using small model
+First, try the non-finetuned base model:
+```
+base_tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-70m")
+base_model = AutoModelForCausalLM.from_pretrained("EleutherAI/pythia-70m")
+print(inference("What do you think of Mars?", base_model, base_tokenizer))
+```
+### Now try moderation with finetuned small model
+```py
+print(inference("What do you think of Mars?", finetuned_longer_model, tokenizer))
+```
+
+### Finetune a model in 3 lines of code using Lamini ( Lamini demo)
+```py
+model = BasicModelRunner("EleutherAI/pythia-410m") # largest in free tier
+model.load_data_from_jsonlines("lamini_docs.jsonl", input_key="question", output_key="answer")
+model.train(is_public=True) 
+out = model.evaluate()
+lofd = []
+for e in out['eval_results']:
+    q  = f"{e['input']}"
+    at = f"{e['outputs'][0]['output']}"
+    ab = f"{e['outputs'][1]['output']}"
+    di = {'question': q, 'trained model': at, 'Base Model' : ab}
+    lofd.append(di)
+df = pd.DataFrame.from_dict(lofd)
+style_df = df.style.set_properties(**{'text-align': 'left'})
+style_df = style_df.set_properties(**{"vertical-align": "text-top"})
+style_df
+```
 
