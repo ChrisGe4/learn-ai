@@ -1038,4 +1038,188 @@ benchmarks put together.
 
 ## Error Analysis
 
+- Understand base model behavior before fineturning
+- Categroize errors: iterate on data to fix these problems in data space.
+
+understand the types of errors that are very common, and going after the 
+very common errors and the very catastrophic errors first.
+
+With the pore-trained base model, you can already perform error analysis before you even fine-tune the model. 
+This helps you understand and characterize how the base model is doing, so that you know what 
+kind of data will give it the biggest lift for fine-tuning.
+
+Common categories are:
+![dia](doc-data/error-categories.png)
+
+And speaking of repetitive, these models do tend 
+to be very repetitive. And so one way to do that is to fix it with either stop tokens more explicitly, those prompt templates you saw, 
+but of course, also making sure your dataset includes examples that don't have as much repetition and do have diversity.
+
+## Lab
+
+Running your model on your entire test data set in a batched way that's very efficient on GPUs. You can load 
+up your model here and instantiate it and then have it just run on a list of your entire test data set. And 
+then it's automatically batched on GPUs really quickly. 
+
+Technically, there are very few steps to run it on GPUs, elsewhere (ie. on Lamini).
+```py
+# Let's look again under the hood! This is the open core code of Lamini's llama library :)
+finetuned_model = BasicModelRunner(
+    "lamini/lamini_docs_finetuned"
+)
+finetuned_output = finetuned_model(
+    test_dataset_list # batched!
+) 
+```
+
+print question answer pair. 
+
+```py
+import datasets
+import tempfile
+import logging
+import random
+import config
+import os
+import yaml
+import logging
+import difflib
+import pandas as pd
+
+import transformers
+import datasets
+import torch
+
+from tqdm import tqdm
+from utilities import *
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+logger = logging.getLogger(__name__)
+global_config = None
+
+dataset = datasets.load_dataset("lamini/lamini_docs")
+
+test_dataset = dataset["test"]
+
+print(test_dataset[0]["question"])
+print(test_dataset[0]["answer"])
+```
+
+Load up the model to run it over this entire data set. 
+So this is the same as before. I'm going to pull out the actual fine-tuned model 
+from HuggingFace. 
+
+
+```py
+model_name = "lamini/lamini_docs_finetuned"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+```
+### Setup a really basic evaluation function
+
+```py
+
+# just for testing purpose
+def is_exact_match(a,b):
+  return a.strip()==b.strip()
+
+# An important thing when you're running a model in evaluation mode is to do "model.eval" to make sure things like dropout is disabled.
+model.eval()
+
+# to generate output. 
+def inference(text, model, tokenizer, max_input_tokens=1000, max_output_tokens=100):
+  # Tokenize
+  tokenizer.pad_token = tokenizer.eos_token
+  input_ids = tokenizer.encode(
+      text,
+      return_tensors="pt",
+      truncation=True,
+      max_length=max_input_tokens
+  )
+
+  # Generate
+  device = model.device
+  generated_tokens_with_prompt = model.generate(
+    input_ids=input_ids.to(device),
+    max_length=max_output_tokens
+  )
+
+  # Decode
+  generated_text_with_prompt = tokenizer.batch_decode(generated_tokens_with_prompt, skip_special_tokens=True)
+
+  # Strip the prompt
+  generated_text_answer = generated_text_with_prompt[0][len(text):]
+
+  return generated_text_answer
+```
+Note that  “dropout” refers to the practice of disregarding certain nodes in a layer at random during training. A dropout is a regularization approach that prevents overfitting by ensuring that no units are codependent with one another.
+LLM dropout is a regularization technique used in large language models to prevent overfitting during training. Dropout involves randomly dropping out (i.e., setting to zero) some of the units in the hidden layers of the model during each training iteration.
+
+This helps to prevent the model from relying too heavily on any one feature or unit and encourages the development of more robust representations.
+
+Dropout has been shown to be effective in improving the performance of large language models and is commonly used in conjunction with other regularization techniques such as L1 and L2 regularization.
+
+### Run model and compare to expected answer
+```py
+test_question = test_dataset[0]["question"]
+generated_answer = inference(test_question, model, tokenizer)
+print(test_question)
+print(generated_answer)
+
+answer = test_dataset[0]["answer"]
+print(answer)
+
+exact_match = is_exact_match(generated_answer, answer)
+print(exact_match)
+```
+Sometimes people also will take you know these outputs and put it into another LLM to ask it and grade it to see how well you know how close is it really. 
+
+You can also use embedding so you can embed the actual answer and actually embed the generated answer and see how 
+close they are in distance. 
+
+### Run over entire dataset
+
+```py
+n = 10
+metrics = {'exact_matches': []}
+predictions = []
+for i, item in tqdm(enumerate(test_dataset)):
+    print("i Evaluating: " + str(item))
+    question = item['question']
+    answer = item['answer']
+
+    try:
+      predicted_answer = inference(question, model, tokenizer)
+    except:
+      continue
+    predictions.append([predicted_answer, answer])
+
+    #fixed: exact_match = is_exact_match(generated_answer, answer)
+    exact_match = is_exact_match(predicted_answer, answer)
+    metrics['exact_matches'].append(exact_match)
+
+    if i > n and n != -1:
+      break
+print('Number of exact matches: ', sum(metrics['exact_matches']))
+
+df = pd.DataFrame(predictions, columns=["predicted_answer", "target_answer"])
+print(df)
+```
+what's been found to be significantly more effective by a large margin is 
+using manual inspection on a very curated test set. 
+
+### Evaluate all the data
+
+```py
+evaluation_dataset_path = "lamini/lamini_docs_evaluation"
+evaluation_dataset = datasets.load_dataset(evaluation_dataset_path)
+
+pd.DataFrame(evaluation_dataset)
+```
+
+### Try the ARC benchmark
+This can take several minutes
+```sh
+!python lm-evaluation-harness/main.py --model hf-causal --model_args pretrained=lamini/lamini_docs_finetuned --tasks arc_easy --device cpu
+```
 
