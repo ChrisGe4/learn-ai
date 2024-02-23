@@ -1011,3 +1011,31 @@ style_df = style_df.set_properties(**{"vertical-align": "text-top"})
 style_df
 ```
 
+# Evaluation
+
+This is a really important step because AI is all about iteration. This helps you improve your model over time. 
+Evaluating generative models is notoriously very, very difficult. metrics actually have trouble keeping up the improved performance
+of these models. 
+- As a result, human evaluation is often the most reliable way of doing so, so have experts who 
+understand the domain actually assess the outputs.
+- Good test data is crucial
+  - high-quality
+  - accurate
+  - genralized: covers a lot of different test cases
+  - not seen in training data  
+- Another popular way that is emerging is ELO comparison: almost like a A-B test between multiple models or tournament across 
+multiple models.
+
+
+## LLM Benchmarks: a suite of different evaluation methods
+
+it's actually taking a bunch of different possible evaluation methods and averaging them all together to rank models. This one is developed by EleutherAI, and it's a set of different 
+benchmarks put together.
+- ARC. It's a set of grade school questions. 
+- HellaSwag is a test of common sense. 
+- MMLU covers a lot of elementary school subjects, 
+- TruthfulQA measures the model's propensity to reproduce falsehoods that you can commonly find online.
+
+## Error Analysis
+
+
