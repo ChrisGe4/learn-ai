@@ -1223,3 +1223,21 @@ This can take several minutes
 !python lm-evaluation-harness/main.py --model hf-causal --model_args pretrained=lamini/lamini_docs_finetuned --tasks arc_easy --device cpu
 ```
 
+# Consideration 
+
+## Tips
+
+![dia](doc-data/ft-approach.png)
+
+#3 generate some or use a prompt template to create some more.
+#4 to get a sense of where the performace is at with this model.
+#5 to understand how much data actually influences where the model is going.
+#9 on that more complex task.
+
+## Tasks to fineturn vs. model size
+
+For task-defined tune, there are
+- Extract-reading tasks
+- Expend-writing tasks(a lot harder): more expensive tasks like chatting, writing emails, writing code because there are more tokens that are produced by the model.
+
+Harder tasks tend to result in needing larger models to be able to handle them.
