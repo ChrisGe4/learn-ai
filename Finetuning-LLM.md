@@ -1241,3 +1241,8 @@ For task-defined tune, there are
 - Expend-writing tasks(a lot harder): more expensive tasks like chatting, writing emails, writing code because there are more tokens that are produced by the model.
 
 Harder tasks tend to result in needing larger models to be able to handle them.
+
+Combination of tasks is harder than 1 task - could mean having an agent be flexible and do several things at once or in one step.
+
+## Model Size x Compute
+
