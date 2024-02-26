@@ -1246,3 +1246,30 @@ Combination of tasks is harder than 1 task - could mean having an agent be flexi
 
 ## Model Size x Compute
 
+Model size decides compute requirement. 
+
+Training needs far more memory to store the gradients and the optimizers  than run a model for inference.
+
+## PEFT: Parameter-Efficient Finetuning
+
+PEFT is a set of different methods that help you do much more efficient in how you're using your parameters and training your models.  https://arxiv.org/abs/2303.15647
+
+I like LoRa, which stands for low rank adaptation. And what LoRa does is that it reduces the number of parameters you have to train 
+weights that you have to train by a huge amount. 
+
+## Why finetune all the parameters
+
+LoRa: low-rank adaptation of LLMs
+- Fewer trainable parameters: For GPT-3, for example, they found that they could 
+reduce it by 10,000x, which resulted in 3x less memory needed from the GPU.
+- Less GPU memory
+- Slightly below accuracy to finetuning
+- Same inference latency
+
+Train new wights in some layers, freeze main pre-trained weights
+- New weights: rank decomposition matrices of original weights' change.
+- At inference, merge with main weights and get that fine-tuned model more efficiently. 
+
+Use LoRA for adapting to new, different tasks: so that means you could train 
+a model with LoRa on one customer's data and then train another one on another customer's data and 
+then be able to merge them each in at inference time when you need them. 
