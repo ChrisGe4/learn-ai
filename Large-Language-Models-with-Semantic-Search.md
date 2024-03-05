@@ -291,3 +291,12 @@ how relevant the answer is with respect to the query. It could also be a documen
 
 The way train re-rank is by giving it a lot of good pairs, a pair where the query and the response are very relevant, or whe nthe query and document are very relevant,
 and trainning it to give those high relevane scores and then also giving it a big set of wrong query responses, close but may not correspond to it.
+
+## Evaluation Search Systems
+
+- Mean Average Precision (MAP)
+- Mean Reciprocal Rank (MRR)
+- Normalized Discounted Cumulative Gain (NDCG)
+
+A good test set would be one containing queryies and correct responses, and then, you can compare these correct resp with the resp that the model gives you in a very similar way
+ a syou would find the accuracy or precision, or recall of a classification model.
