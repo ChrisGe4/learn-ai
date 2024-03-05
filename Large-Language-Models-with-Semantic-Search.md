@@ -280,3 +280,14 @@ each search has a relevance score the we aggregate them, and we can add more sig
 Next step is rerank.
 
 Recommanded reading: "Pretrained Transformers for text ranking: BERT and Beyond"
+
+# ReRank
+
+Dense Retrieval puts the query inside the embedding and then it returns the closest fo the responeses. It looks at similarities,
+so it returns the response that is most similar to the question.
+
+We can let Dense Retrieval returns top N responses close to the query then Rerank them. Rerank assigns to each query response pair a relevant score that tells you
+how relevant the answer is with respect to the query. It could also be a document.
+
+The way train re-rank is by giving it a lot of good pairs, a pair where the query and the response are very relevant, or whe nthe query and document are very relevant,
+and trainning it to give those high relevane scores and then also giving it a big set of wrong query responses, close but may not correspond to it.
