@@ -300,3 +300,53 @@ and trainning it to give those high relevane scores and then also giving it a bi
 
 A good test set would be one containing queryies and correct responses, and then, you can compare these correct resp with the resp that the model gives you in a very similar way
  a syou would find the accuracy or precision, or recall of a classification model.
+
+# Generative Search
+
+## Search can help LLMs in multiple ways
+
+When you rely on a LLM's direct answer, you're relying on the world information it has stored inside of it.
+If you want LLMs to answer from a specific document or archive. This is where you can add a search component before gen generation step to improve 
+those generations.
+
+Retrieval can help LLMs with:
+- Factual information
+- Private information
+- Updated information
+
+Steps: 
+1. present the question to a search system
+2. pose the answers in the prompt to the model in addition to the question.
+
+Sample Code:
+
+```py
+def ask_andrews_article(question, num_generations=1):
+    
+    # Search the text archive
+    results = search_andrews_article(question)
+
+    # Get the top result
+    context = results[0]
+
+    # Prepare the prompt
+    prompt = f"""
+    Excerpt from the article titled "How to Build a Career in AI" 
+    by Andrew Ng: 
+    {context}
+    Question: {question}
+    
+    Extract the answer of the question from the text provided. 
+    If the text doesn't contain the answer, 
+    reply that the answer is not available."""
+
+    prediction = co.generate(
+        prompt=prompt,
+        max_tokens=70,
+        model="command-nightly",
+        temperature=0.5,
+        num_generations=num_generations
+    )
+
+    return prediction.generations
+```
