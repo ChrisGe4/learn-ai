@@ -35,3 +35,9 @@ Note about LLMOps:
 - think promopt design and managment for experiment and prod
 
 
+![dia](doc-data/LLM-APP-example.png)
+
+- pre-precessing includes chunking ...
+- grounding includes put the chunked user input into a prompt to feed the model and compare the LLM resp to the fact.
+
+![dia](doc-data/llmops-pipeline.png)
