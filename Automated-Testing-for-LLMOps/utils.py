@@ -118,25 +118,34 @@ def inspect_config():
 
 
 def load_env():
-  _=load_dotenv(find_dotenv())
+  _ = load_dotenv(find_dotenv())
 
 
-def get_vertex_api_key():
+def get_google_api_key():
   load_env()
-  return os.getenv("VERTEX_API_KEY")
+  return os.getenv("GOOGLE_API_KEY")
+
 
 def get_circle_api_key():
   load_env()
   circle_token = os.getenv("CIRCLE_TOKEN")
   return circle_token
 
+
 def get_gh_api_key():
   load_env()
   github_token = os.getenv("GH_TOKEN")
   return github_token
 
+
 def get_repo_name():
   return "ChrisGe4/automated-testing-for-llmops"
 
 
-def
+def get_branch() -> str:
+  prefix = "dl-cci"
+  adjective = random.choice(adjectives)
+  noun = random.choice(nouns)
+  number = random.choice(range(1, 100))
+
+  return f"{prefix}-{adjective}-{noun}-{number}"

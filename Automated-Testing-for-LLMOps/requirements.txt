@@ -87,3 +87,4 @@ wrapt==1.15.0
 yarl==1.9.2
 google-cloud-aiplatform
 google-cloud-logging
+langchain-google-vertexai
