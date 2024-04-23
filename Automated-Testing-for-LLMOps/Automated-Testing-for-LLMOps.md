@@ -10,3 +10,8 @@ LLM tests bring new challenges.
 ## When and What to Eval
 
 ![eval-when-what.png](..%2Fdoc-data%2Feval-when-what.png)
+
+
+## Environment-specific Evals
+
+![env-spec-evals.png](..%2Fdoc-data%2Fenv-spec-evals.png)
