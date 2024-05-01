@@ -2,7 +2,7 @@ google-cloud-aiplatform
 google-cloud-logging
 langchain-google-vertexai
 langchain-core
-github
 langchain
 aiohttp==3.8.1
 urllib3<2.0.0
+PyGithub

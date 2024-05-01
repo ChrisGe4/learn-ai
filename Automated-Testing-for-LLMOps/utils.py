@@ -141,7 +141,7 @@ def get_gh_api_key():
 
 
 def get_repo_name():
-  return "ChrisGe4/automated-testing-for-llmops"
+  return "ChrisGe4/Automated-Testing-for-LLMOps"
 
 
 def get_branch() -> str:
@@ -192,7 +192,7 @@ def push_files(repo_name, branch_name, files):
     time.sleep(2)
   except Exception as _:
     print(
-      f"{branch_name} already exists in the repository pushing updated changes")
+        f"{branch_name} already exists in the repository pushing updated changes")
 
   branch_sha = repo.get_branch(branch_name).commit.sha
 
@@ -204,7 +204,8 @@ def push_files(repo_name, branch_name, files):
   branch_refs = repo.get_git_ref(f"heads/{branch_name}")
   branch_refs.edit(sha=commit.sha)
 
-def _trigger_circle_pipeline(repo_name,branch, token, params=None):
+
+def _trigger_circle_pipeline(repo_name, branch, token, params=None):
   params = {} if params is None else params
   r = requests.post(
       f"{os.getenv('DLAI_CIRCLE_CI_API_BASE', 'https://circleci.com')}/api/v2/project/gh/{repo_name}/pipeline",
@@ -217,12 +218,14 @@ def _trigger_circle_pipeline(repo_name,branch, token, params=None):
       f"Please visit https://app.circleci.com/pipelines/github/{repo_name}/{pipeline_number}"
   )
 
+
 def trigger_commit_evals(repo_name, branch, token):
   _trigger_circle_pipeline(repo_name, branch, token, {"eval-mode": "commit"})
 
 
 def trigger_release_evals(repo_name, branch, token):
   _trigger_circle_pipeline(repo_name, branch, token, {"eval-mode": "release"})
+
 
 def trigger_full_evals(repo_name, branch, token):
   _trigger_circle_pipeline(repo_name, branch, token, {"eval-mode": "full"})
