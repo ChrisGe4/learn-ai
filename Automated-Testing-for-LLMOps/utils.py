@@ -1,3 +1,5 @@
+import time
+
 import github
 import os
 import requests
@@ -149,3 +151,78 @@ def get_branch() -> str:
   number = random.choice(range(1, 100))
 
   return f"{prefix}-{adjective}-{noun}-{number}"
+
+
+def create_tree_element(repo, path, content):
+  blob = repo.create_git_blob(content, "utf-8")
+  element = github.InputGitTreeElement(path=path, mode="100644", type="blob",
+                                       sha=blob.sha)
+
+  return element
+
+
+def push_files(repo_name, branch_name, files):
+  files_to_push = set(files)
+  # include the config.yaml file
+  g = github.Github(os.environ["GH_TOKEN"])
+  repo = g.get_repo(repo_name)
+
+  elements = []
+  config_element = create_tree_element(repo, ".circleci/config.yml",
+                                       open("circle_config.yaml").read())
+  elements.append(config_element)
+
+  requirements_element = create_tree_element(repo, "requirements.txt",
+                                             open("requirements.txt"))
+
+  elements.append(requirements_element)
+
+  for file in files_to_push:
+    print(f"uploading {file}")
+    with open(file, encoding="utf-8") as f:
+      content = f.read()
+      element = create_tree_element(repo, file, content)
+      elements.append(element)
+
+  head_sha = repo.get_branch("main").commit.sha
+
+  print(f"pushing files to: {branch_name}")
+  try:
+    repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=head_sha)
+    time.sleep(2)
+  except Exception as _:
+    print(
+      f"{branch_name} already exists in the repository pushing updated changes")
+
+  branch_sha = repo.get_branch(branch_name).commit.sha
+
+  base_tree = repo.get_git_tree(sha=branch_sha)
+  tree = repo.create_git_tree(elements, base_tree)
+  parent = repo.get_git_commit(sha=branch_sha)
+  commit = repo.create_git_commit("Trigger CI evaluation pipeline", tree,
+                                  [parent])
+  branch_refs = repo.get_git_ref(f"heads/{branch_name}")
+  branch_refs.edit(sha=commit.sha)
+
+def _trigger_circle_pipeline(repo_name,branch, token, params=None):
+  params = {} if params is None else params
+  r = requests.post(
+      f"{os.getenv('DLAI_CIRCLE_CI_API_BASE', 'https://circleci.com')}/api/v2/project/gh/{repo_name}/pipeline",
+      headers={"Circle-Token": f"{token}", "accept": "application/json"},
+      json={"branch": branch, "parameters": params},
+  )
+  pipeline_data = r.json()
+  pipeline_number = pipeline_data["number"]
+  print(
+      f"Please visit https://app.circleci.com/pipelines/github/{repo_name}/{pipeline_number}"
+  )
+
+def trigger_commit_evals(repo_name, branch, token):
+  _trigger_circle_pipeline(repo_name, branch, token, {"eval-mode": "commit"})
+
+
+def trigger_release_evals(repo_name, branch, token):
+  _trigger_circle_pipeline(repo_name, branch, token, {"eval-mode": "release"})
+
+def trigger_full_evals(repo_name, branch, token):
+  _trigger_circle_pipeline(repo_name, branch, token, {"eval-mode": "full"})
